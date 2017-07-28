@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as _ from 'lodash';
 
 import { RenderData } from '../render-data';
+import { ThreeUtilsService } from '../three-utils.service';
 
 @Component({
   selector: 'app-uv-display',
@@ -17,11 +18,12 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
   private camera: THREE.OrthographicCamera;
   private renderer: THREE.WebGLRenderer;
   private light: THREE.Light;
-  private textureLoader: THREE.TextureLoader;
+
 
   private rendererContainer: any;
 
   constructor(
+    private threeUtils: ThreeUtilsService,
     private element: ElementRef,
     private htmlRenderer: Renderer2,
   ) { }
@@ -32,7 +34,7 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
   public ngDoCheck(): void {
     if (!_.isEqual(this.oldRenderData, this.renderData)) {
       this.oldRenderData = _.cloneDeep(this.renderData);
-      this.updateScene();
+      this.updateRenderData();
     }
   }
 
@@ -41,12 +43,12 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
     if (change) {
       if (!_.isEqual(change.currentValue, change.previousValue)) {
         this.oldRenderData = _.cloneDeep(this.renderData);
-        this.updateScene();
+        this.updateRenderData();
       }
     }
   }
 
-  public updateScene(): void {
+  public updateRenderData(): void {
     if (!this.scene) {
       // scene needs to be initialized
       this.initScene();
@@ -78,8 +80,6 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
     this.scene.add(this.camera);
 
     this.light = new THREE.AmbientLight('white');
-    // this.light = new THREE.DirectionalLight( 0xffffff );
-    // this.light.position.set( 0, 1, 1 ).normalize();
     this.scene.add(this.light);
 
     this.renderer = new THREE.WebGLRenderer();
@@ -87,6 +87,16 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
     this.renderer.setSize(this.rendererContainer.clientWidth, this.rendererContainer.clientHeight);
     this.htmlRenderer.appendChild(this.rendererContainer, this.renderer.domElement);
 
+    // this.addReferencePointsToScene();
+    // this.addTestCubeToScene();
+
+    this.addObjToScene('assets/Collar.obj');
+
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  // adds reference points to the corners and center of UV space
+  private addReferencePointsToScene(): void {
     // create anchor points for UV space
     const points = [
       { u: 0, v: 0, color: 'red' },
@@ -102,27 +112,30 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
       obj.position.y = point.v;
       this.scene.add(obj);
     });
+  }
 
-    this.getCube().then((cube) => {
+  private addTestCubeToScene(): void {
+    this.createTexturedCube().then((cube) => {
       this.scene.add(cube);
+      this.threeUtils.generateUVFacesFromMesh(cube.geometry)
+        .then((uvLines) => {
+          this.scene.add(uvLines);
+        });
+
       this.renderer.render(this.scene, this.camera);
 
+      // spin the cube around
       const animate = function () {
         cube.rotation.x += .04;
         cube.rotation.y += .02;
-
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(_.bind<FrameRequestCallback>(animate, this));
       };
-
       animate.apply(this);
-
     });
-
-    this.renderer.render(this.scene, this.camera);
   }
 
-  private async getCube(): Promise<THREE.Mesh> {
+  private createTexturedCube(): Promise<THREE.Mesh> {
     const promise = new Promise<THREE.Mesh>((resolve, reject) => {
       //  create the UV mappings
       const bricks = [new THREE.Vector2(0, .666), new THREE.Vector2(.5, .666), new THREE.Vector2(.5, 1), new THREE.Vector2(0, 1)];
@@ -134,26 +147,13 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
 
       const geometry = new THREE.CubeGeometry(.5, .5, .5);
       geometry.faceVertexUvs[0] = [];
-      geometry.faceVertexUvs[0][0] = [bricks[0], bricks[1], bricks[3]];
-      geometry.faceVertexUvs[0][1] = [bricks[1], bricks[2], bricks[3]];
 
-      geometry.faceVertexUvs[0][2] = [clouds[0], clouds[1], clouds[3]];
-      geometry.faceVertexUvs[0][3] = [clouds[1], clouds[2], clouds[3]];
+      _.forEach([bricks, clouds, wood, crate, stone, water], (coords, idx) => {
+        geometry.faceVertexUvs[0][2 * idx] = [coords[0], coords[1], coords[3]];
+        geometry.faceVertexUvs[0][(2 * idx) + 1] = [coords[1], coords[2], coords[3]];
+      });
 
-      geometry.faceVertexUvs[0][4] = [crate[0], crate[1], crate[3]];
-      geometry.faceVertexUvs[0][5] = [crate[1], crate[2], crate[3]];
-
-      geometry.faceVertexUvs[0][6] = [stone[0], stone[1], stone[3]];
-      geometry.faceVertexUvs[0][7] = [stone[1], stone[2], stone[3]];
-
-      geometry.faceVertexUvs[0][8] = [water[0], water[1], water[3]];
-      geometry.faceVertexUvs[0][9] = [water[1], water[2], water[3]];
-
-      geometry.faceVertexUvs[0][10] = [wood[0], wood[1], wood[3]];
-      geometry.faceVertexUvs[0][11] = [wood[1], wood[2], wood[3]];
-
-      // this.loadTexture('assets/crate.jpg')
-      this.loadTexture('assets/texture-atlas.jpg')
+      this.threeUtils.loadTexture('assets/texture-atlas.jpg')
         .then((texture) => {
           // create and return our cube centered at 0,0
           const material = new THREE.MeshPhongMaterial({ color: 'white', map: texture });
@@ -166,26 +166,19 @@ export class UvDisplayComponent implements OnInit, OnChanges, DoCheck {
     return promise;
   }
 
-  private loadTexture(url): Promise<THREE.Texture> {
+  private addObjToScene(url: string): void {
 
-    if (!this.textureLoader) {
-      this.textureLoader = new THREE.TextureLoader();
-    }
-
-    const promise = new Promise<THREE.Texture>((resolve, reject) => {
-      this.textureLoader.load(url,
-        (texture) => {
-          resolve(texture);
-        },
-        (xhr) => {
-          console.log(`loading ${url}: ${(xhr.loaded / xhr.total * 100)}% loaded`);
-        },
-        (error) => {
-          console.error(error);
-          reject(error);
-        });
-    });
-    return promise;
+    this.threeUtils.loadObj(url)
+      .then((obj) => {
+        this.scene.add(obj);
+        if (obj.children[0] instanceof THREE.Mesh) {
+          this.threeUtils.generateUVFacesFromMesh((<THREE.Mesh>obj.children[0]).geometry)
+            .then((uvLines) => {
+              this.scene.add(uvLines);
+              this.renderer.render(this.scene, this.camera);
+            });
+        }
+        this.renderer.render(this.scene, this.camera);
+      });
   }
-
 }

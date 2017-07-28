@@ -9,8 +9,6 @@ import { UvDisplayComponent } from './uv-display/uv-display.component';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  @ViewChild(UvDisplayComponent) private renderComponent: UvDisplayComponent;
-
   public renderData: RenderData;
 
   constructor(
@@ -23,10 +21,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-  }
-
-  public onTriggerRender(): void {
-    this.renderComponent.updateScene();
   }
 
 }
