@@ -1,0 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: row;
+
+  .render-container {
+    flex: 0 0 auto;
+    width: 512px;
+    height: 512px;
+    border: thin solid black;
+  }
+}

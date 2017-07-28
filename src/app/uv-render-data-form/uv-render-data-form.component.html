@@ -1,0 +1,18 @@
+<h3>Render Data</h3>
+<form>
+  <div class="form-group">
+    <label for="farPlane">Far Plane</label>
+    <input type="number" class="form-control" id="farPlane" name="farPlane" [(ngModel)]="renderData.farPlane">
+  </div>
+  <div class="form-group">
+    <label for="nearPlane">Near Plane</label>
+    <input type="number" class="form-control" id="nearPlane" name="nearPlane" [(ngModel)]="renderData.nearPlane">
+  </div>
+  <div class="form-group">
+    <label for="position.x">Camera Position</label>
+    <input type="number" class="form-control" id="position.x" name="position.x" [(ngModel)]="renderData.position.x">
+    <input type="number" class="form-control" id="position.y" name="position.y" [(ngModel)]="renderData.position.y">
+    <input type="number" class="form-control" id="position.z" name="position.z" [(ngModel)]="renderData.position.z">
+  </div>
+
+</form>
