@@ -32,10 +32,16 @@ export class UvDisplayComponent implements OnInit {
     this.initScene();
   }
 
+  public clearScene(): void {
+    this.threeUtils.clearScene(this.scene);
+  }
+
   public addObject(original: THREE.Group): void {
-    this.generateUVObject(original, 'white')
+    this.generateUVObject(original, 'yellow')
       .then((uvObj) => {
         this.scene.add(uvObj);
+        const mesh = <THREE.Mesh>original.children[0];
+        this.setBackground(mesh.material);
         this.renderer.render(this.scene, this.camera);
       });
   }
@@ -130,13 +136,22 @@ export class UvDisplayComponent implements OnInit {
     const geometry = new THREE.Geometry();
 
     sourceGeometry = (sourceGeometry instanceof THREE.BufferGeometry) ? new THREE.Geometry().fromBufferGeometry(sourceGeometry) : sourceGeometry;
-    const uvs = sourceGeometry.faceVertexUvs[0];
+    const faceUvs = sourceGeometry.faceVertexUvs[0];
 
-    _.forEach(uvs, (uvSet) => {
-      _.forEach(uvSet, (uv) => {
-        geometry.vertices.push(new THREE.Vector3(uv.x, uv.y, 0));
+    const points = [[0, 1], [1, 2], [2, 0]];
+
+    _.forEach(faceUvs, (uvs, faceIdx) => {
+      _.forEach(points, (idx) => {
+        const p1 = new THREE.Vector3(uvs[idx[0]].x, uvs[idx[0]].y, 0);
+        const p2 = new THREE.Vector3(uvs[idx[1]].x, uvs[idx[1]].y, 0);
+        geometry.vertices.push(p1);
+        geometry.vertices.push(p2);
+
+        // const v1 = new THREE.Mesh(new THREE.SphereGeometry(.01), new THREE.MeshBasicMaterial({ color: 'green' }));
+        // v1.position.set(p1.x, p1.y, p1.z);
+        // this.scene.add(v1);
       });
-      geometry.vertices.push(new THREE.Vector3(uvSet[0].x, uvSet[0].y, 0)); // close by returning to start
+      console.log(`- adding UV face ${faceIdx}`);
     });
 
     return geometry;

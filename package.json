@@ -25,7 +25,9 @@
     "lodash": "^4.17.4",
     "rxjs": "^5.4.1",
     "three": "^0.86.0",
+    "three-mtl-loader": "^1.0.1",
     "three-obj-loader": "^1.1.2",
+    "three-objmtll-loader": "^1.0.1",
     "three-orbit-controls": "^82.1.0",
     "zone.js": "^0.8.14"
   },

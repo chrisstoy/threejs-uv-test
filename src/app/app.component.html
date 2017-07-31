@@ -1,5 +1,7 @@
 <div class="container">
   <app-uv-display></app-uv-display>
   <app-object-renderer></app-object-renderer>
+  <app-render-controls (modelSelected)="loadObject($event)"></app-render-controls>
 </div>
 <br>
+<div>Loading This model: {{loadedModel}}</div>

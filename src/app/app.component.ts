@@ -15,6 +15,8 @@ export class AppComponent implements OnInit {
   @ViewChild(ObjectRendererComponent) objectRenderer: ObjectRendererComponent;
   @ViewChild(UvDisplayComponent) uvRenderer: UvDisplayComponent;
 
+  public loadedModel = '';
+
   constructor(
     private threeUtils: ThreeUtilsService,
   ) {
@@ -22,24 +24,33 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     // load the desired object
-    this.loadObject('assets/Cube0.obj');
+//    this.loadObject('assets/male02.obj');
+    this.loadObject('assets/Cube3.obj');
   }
 
   // Load the requested object into the displays
   public loadObject(url: string): void {
 
+    this.loadedModel = url;
+
+    this.objectRenderer.clearScene();
+    this.uvRenderer.clearScene();
+
     // testing: just add a textured cube
-    this.threeUtils.createTexturedCube()
-      .then((cube) => {
-        this.objectRenderer.addObject(cube);
-        this.uvRenderer.addObject(cube);
+    // this.threeUtils.createTexturedCube()
+    //   .then((cube) => {
+    //     this.objectRenderer.addObject(cube);
+    //     this.uvRenderer.addObject(cube);
+    //   });
+
+    this.threeUtils.loadObj(url)
+      .then((obj) => {
+        this.objectRenderer.addObject(obj);
+        this.uvRenderer.addObject(obj);
       });
 
-    // this.threeUtils.loadObj(url)
-    //   .then((obj) => {
-    //     this.objectRenderer.addObject(obj);
-    //     this.uvRenderer.addObject(obj);
-    //   });
   }
+
+
 
 }

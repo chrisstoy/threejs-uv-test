@@ -1,0 +1,17 @@
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  border:thin solid red;
+
+  .models-to-load {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: row;
+    border: thin solid blue;
+
+    button {
+      display: flex;
+      flex: 1 1 auto;
+    }
+  }
+}

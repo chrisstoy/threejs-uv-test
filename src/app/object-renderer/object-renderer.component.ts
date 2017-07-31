@@ -16,7 +16,7 @@ export class ObjectRendererComponent implements OnInit {
   private rendererContainer: any;
 
   private scene: THREE.Scene;
-  private camera: THREE.Camera;
+  private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private light: THREE.Light;
   private controls: THREE.OrbitControls;
@@ -66,36 +66,33 @@ export class ObjectRendererComponent implements OnInit {
       requestAnimationFrame(_.bind<FrameRequestCallback>(animate, this));
     };
     animate.apply(this);
-
-
   }
 
   public addObject(obj: THREE.Object3D): void {
     this.scene.add(obj);
     this.renderer.render(this.scene, this.camera);
+    this.zoomToExtents();
   }
 
   public clearScene(): void {
     this.threeUtils.clearScene(this.scene);
+    if ( this.controls ) {
+      this.controls.reset();
+    }
   }
 
-  public createCube(useAnimation: boolean): Promise<THREE.Mesh> {
-    return this.threeUtils.createTexturedCube()
-      .then((cube) => {
+  // move camera back so all objects in scene are visible
+  public zoomToExtents(): void {
+    // Convert camera fov degrees to radians
+    const fov = this.camera.fov * (Math.PI / 180);
 
-        // spin the cube around
-        if (useAnimation) {
-          const animate = function () {
-            // cube.rotation.x += .04;
-            // cube.rotation.y += .02;
-            this.renderer.render(this.scene, this.camera);
-            requestAnimationFrame(_.bind<FrameRequestCallback>(animate, this));
-          };
-          animate.apply(this);
-        }
+    const worldRadius = this.threeUtils.sceneBoundingRadius(this.scene);
 
-        return cube;
-      });
+    // Calculate the camera distance
+    const distance = Math.abs(worldRadius / Math.sin(fov / 2));
+    this.camera.position.z = distance;
+
+    this.renderer.render(this.scene, this.camera);
   }
 
 }

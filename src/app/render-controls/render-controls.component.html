@@ -1,0 +1,6 @@
+<div>
+  <h3>Load a Model</h3>
+  <div class="models-to-load" *ngFor="let am of availableModels">
+    <button (click)="onLoadModel(am)">{{am.name}}</button>
+  </div>
+</div>

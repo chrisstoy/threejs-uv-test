@@ -68,7 +68,17 @@ export class ThreeUtilsService {
     const promise = new Promise<THREE.Group>((resolve, reject) => {
       this.objLoader.load(url,
         (obj) => {
-          resolve(obj);
+
+          this.loadTexture('assets/male-02-1noCulling.JPG')
+            .then((texture) => {
+              // create and return our cube centered at 0,0
+              const material = new THREE.MeshPhongMaterial({ color: 'white', map: texture });
+              _.forEach(obj.children, (mesh: THREE.Mesh) => {
+                mesh.material = material;
+              });
+              resolve(obj);
+            });
+
         },
         (xhr) => {
           console.log(`loading OBJ ${url}: ${(xhr.loaded / xhr.total * 100)}% loaded`);
@@ -114,14 +124,36 @@ export class ThreeUtilsService {
 
   // Remove all Objects in the scene
   public clearScene(scene: THREE.Scene): void {
-    for (let i = scene.children.length - 1; i >= 0; i--) {
-      const child = scene.children[i];
+    if (scene && _.isArrayLike(scene.children)) {
+      for (let i = scene.children.length - 1; i >= 0; i--) {
+        const child = scene.children[i];
 
-      if (!(child instanceof THREE.Camera)) {
-        // don't remove the Camera
-        scene.remove(child);
+        if (!(child instanceof THREE.Camera) && !(child instanceof THREE.Light)) {
+          // don't remove the Camera
+          scene.remove(child);
+        }
       }
     }
   }
 
+  // Calculate the radius of the sphere centered at origin that encompases all objects in the scene
+  public sceneBoundingRadius(scene: THREE.Scene): number {
+
+    const getMaxRadius = (accum: number, obj: THREE.Object3D) => {
+      if (obj instanceof THREE.Mesh) {
+        const mesh = <THREE.Mesh>(obj);
+        mesh.geometry.computeBoundingSphere();
+        const bsphere = mesh.geometry.boundingSphere;
+        return Math.max(bsphere.radius + bsphere.center.length(), accum);
+
+      } else if (obj instanceof THREE.Group) {
+        return _.reduce(obj.children, getMaxRadius, accum);
+      } else {
+        return accum;
+      }
+    };
+
+    const radius = _.reduce(scene.children, getMaxRadius, 1);
+    return radius;
+  }
 }
