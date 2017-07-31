@@ -8,12 +8,14 @@ import { ThreeUtilsService } from './three-utils.service';
 import { AppComponent } from './app.component';
 import { UvDisplayComponent } from './uv-display/uv-display.component';
 import { UvRenderDataFormComponent } from './uv-render-data-form/uv-render-data-form.component';
+import { ObjectRendererComponent } from './object-renderer/object-renderer.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     UvDisplayComponent,
-    UvRenderDataFormComponent
+    UvRenderDataFormComponent,
+    ObjectRendererComponent
   ],
   imports: [
     BrowserModule,

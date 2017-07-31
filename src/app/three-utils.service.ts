@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as THREE from 'three';
-import * as OBJLoader from 'three-obj-loader';
-OBJLoader(THREE);
+import * as OBJLoaderFactory from 'three-obj-loader';
+const OBJLoader = OBJLoaderFactory(THREE);
 
 @Injectable()
 export class ThreeUtilsService {
@@ -82,43 +82,46 @@ export class ThreeUtilsService {
     return promise;
   }
 
-  // Generates lines representing the UV faces. Optionally labels the faces
-  public async generateUVFacesFromMesh(sourceGeometry: THREE.Geometry | THREE.BufferGeometry, drawLabels: boolean = false): Promise<THREE.Line> {
+  // Create a texture-mapped Cube for testing
+  public createTexturedCube(): Promise<THREE.Mesh> {
+    const promise = new Promise<THREE.Mesh>((resolve, reject) => {
+      //  create the UV mappings
+      const bricks = [new THREE.Vector2(0, .666), new THREE.Vector2(.5, .666), new THREE.Vector2(.5, 1), new THREE.Vector2(0, 1)];
+      const clouds = [new THREE.Vector2(.5, .666), new THREE.Vector2(1, .666), new THREE.Vector2(1, 1), new THREE.Vector2(.5, 1)];
+      const crate = [new THREE.Vector2(0, .333), new THREE.Vector2(.5, .333), new THREE.Vector2(.5, .666), new THREE.Vector2(0, .666)];
+      const stone = [new THREE.Vector2(.5, .333), new THREE.Vector2(1, .333), new THREE.Vector2(1, .666), new THREE.Vector2(.5, .666)];
+      const water = [new THREE.Vector2(0, 0), new THREE.Vector2(.5, 0), new THREE.Vector2(.5, .333), new THREE.Vector2(0, .333)];
+      const wood = [new THREE.Vector2(.5, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, .333), new THREE.Vector2(.5, .333)];
 
-    const material = new THREE.LineBasicMaterial({ color: 'yellow' });
-    const geometry = new THREE.Geometry();
+      const geometry = new THREE.CubeGeometry(.5, .5, .5);
+      geometry.faceVertexUvs[0] = [];
 
-    sourceGeometry = (sourceGeometry instanceof THREE.BufferGeometry) ? new THREE.Geometry().fromBufferGeometry(sourceGeometry) : sourceGeometry;
-    const uvs = sourceGeometry.faceVertexUvs[0];
-
-    _.forEach(uvs, (uvSet) => {
-      _.forEach(uvSet, (uv) => {
-        geometry.vertices.push(new THREE.Vector3(uv.x, uv.y, 0));
+      _.forEach([bricks, clouds, wood, crate, stone, water], (coords, idx) => {
+        geometry.faceVertexUvs[0][2 * idx] = [coords[0], coords[1], coords[3]];
+        geometry.faceVertexUvs[0][(2 * idx) + 1] = [coords[1], coords[2], coords[3]];
       });
-      geometry.vertices.push(new THREE.Vector3(uvSet[0].x, uvSet[0].y, 0)); // close by returning to start
-    });
 
-    const lines = new THREE.LineSegments(geometry, material);
-    return lines;
+      this.loadTexture('assets/texture-atlas.jpg')
+        .then((texture) => {
+          // create and return our cube centered at 0,0
+          const material = new THREE.MeshPhongMaterial({ color: 'white', map: texture });
+          const cube = new THREE.Mesh(geometry, material);
+          resolve(cube);
+        });
+    });
+    return promise;
   }
 
-    // private createLabelAt(text: string, position: THREE.Vector3, options: any): THREE.Mesh {
+  // Remove all Objects in the scene
+  public clearScene(scene: THREE.Scene): void {
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+      const child = scene.children[i];
 
-  //   const geoOptions = _.merge({
-  //     font:
-  //   }, options);
+      if (!(child instanceof THREE.Camera)) {
+        // don't remove the Camera
+        scene.remove(child);
+      }
+    }
+  }
 
-  //   const textGeo = new THREE.TextGeometry(text, {
-  //     font: font,
-  //     size: size,
-  //     height: height,
-  //     curveSegments: curveSegments,
-  //     bevelThickness: bevelThickness,
-  //     bevelSize: bevelSize,
-  //     bevelEnabled: bevelEnabled,
-  //     material: 0,
-  //     extrudeMaterial: 1
-  //   });
-  //   return new THREE.Mesh(textGeo, material);
-  // }
 }
