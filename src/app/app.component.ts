@@ -37,6 +37,7 @@ export class AppComponent implements OnInit {
 
     this.objectRenderer.clearScene();
     this.uvRenderer.clearScene();
+    this.uvCanvas.clearScene();
 
     // testing: just add a textured cube
     // this.threeUtils.createTexturedCube()

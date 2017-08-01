@@ -69,14 +69,27 @@ export class ObjectRendererComponent implements OnInit {
   }
 
   public addObject(obj: THREE.Object3D): void {
+
     this.scene.add(obj);
+
+    // for testing, just render the geometry edges
+    // if (obj.children[0] instanceof THREE.Mesh) {
+    //   const mesh = <THREE.Mesh>obj.children[0];
+    //   const geo = (mesh.geometry instanceof THREE.BufferGeometry ? mesh.geometry : new THREE.BufferGeometry().fromGeometry(mesh.geometry));
+    //   const edges = new THREE.EdgesGeometry(geo, 1);
+    //   const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+    //   this.scene.add(line);
+    // } else {
+    //   this.scene.add(obj);
+    // }
+
     this.renderer.render(this.scene, this.camera);
     this.zoomToExtents();
   }
 
   public clearScene(): void {
     this.threeUtils.clearScene(this.scene);
-    if ( this.controls ) {
+    if (this.controls) {
       this.controls.reset();
     }
   }
@@ -85,7 +98,6 @@ export class ObjectRendererComponent implements OnInit {
   public zoomToExtents(): void {
     // Convert camera fov degrees to radians
     const fov = this.camera.fov * (Math.PI / 180);
-
     const worldRadius = this.threeUtils.sceneBoundingRadius(this.scene);
 
     // Calculate the camera distance

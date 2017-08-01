@@ -34,14 +34,21 @@ export class UvDisplayComponent implements OnInit {
 
   public clearScene(): void {
     this.threeUtils.clearScene(this.scene);
+    this.background = null;
   }
 
   public addObject(original: THREE.Group): void {
     this.generateUVObject(original, 'yellow')
       .then((uvObj) => {
         this.scene.add(uvObj);
-        const mesh = <THREE.Mesh>original.children[0];
-        this.setBackground(mesh.material);
+        const mesh = _.find<THREE.Object3D>(original.children, (child: THREE.Object3D) => {
+          return !_.isUndefined(_.get(child, 'material.map'));
+        });
+
+        if (mesh instanceof THREE.Mesh && (<THREE.Mesh>mesh).material != null) {
+          this.setBackground(mesh.material);
+        }
+
         this.renderer.render(this.scene, this.camera);
       });
   }
@@ -53,9 +60,8 @@ export class UvDisplayComponent implements OnInit {
       this.background = new THREE.Mesh(geometry, material);
       this.background.position.set(.5, .5, 0);
       this.scene.add(this.background);
-    } else {
-      this.background.material = material;
     }
+    this.background.material = material;
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -97,27 +103,27 @@ export class UvDisplayComponent implements OnInit {
         for (const child of obj.children) {
           if (child instanceof THREE.Mesh) {
             const mesh = <THREE.Mesh>child;
-            const uvGeometry = this.threeUtils.generateUVLineSegments(mesh.geometry);
-            const material = new THREE.LineBasicMaterial({ color: lineColor });
-            const line = new THREE.LineSegments(uvGeometry, material);
-            group.add(line);
+            const lines = this.uvLinesFromMesh(mesh, lineColor);
+            group.add(lines);
           }
         }
         resolve(group);
       } else if (obj instanceof THREE.Mesh) {
         const mesh = <THREE.Mesh>obj;
-
-        this.setBackground(mesh.material);
-        const uvGeometry = this.threeUtils.generateUVLineSegments(mesh.geometry);
-        const material = new THREE.LineBasicMaterial({ color: lineColor });
-        const lines = new THREE.LineSegments(uvGeometry, material);
+        const lines = this.uvLinesFromMesh(mesh, lineColor);
         group.add(lines);
         resolve(group);
       }
     });
   }
 
-
+  // Creates a LineSegment from the passed geometry
+  private uvLinesFromMesh(mesh: THREE.Mesh, lineColor: string): THREE.Object3D {
+    const uvGeometry = this.threeUtils.generateUVLineSegments(mesh.geometry);
+    const material = new THREE.LineBasicMaterial({ color: lineColor });
+    const line = new THREE.LineSegments(uvGeometry, material);
+    return line;
+  }
 
   // adds reference points to the corners and center of UV space
   private addReferencePointsToScene(): void {

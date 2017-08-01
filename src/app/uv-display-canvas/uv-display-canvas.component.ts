@@ -32,8 +32,10 @@ export class UvDisplayCanvasComponent implements OnInit {
 
   public clearScene(): void {
     // clear the canvas
-    this.ctx.fillStyle = this.clearColor;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    if (this.ctx) {
+      this.ctx.fillStyle = this.clearColor;
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
   }
 
   public addObject(original: THREE.Group): void {
@@ -72,11 +74,11 @@ export class UvDisplayCanvasComponent implements OnInit {
     this.ctx.lineTo(face.points[2].x * width, height - face.points[2].y * height);
     this.ctx.closePath();
 
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = .1;
     this.ctx.strokeStyle = '#666666';
     this.ctx.stroke();
 
     this.ctx.fillStyle = color;
-    //    this.ctx.fill();
+    this.ctx.fill();
   }
 }
