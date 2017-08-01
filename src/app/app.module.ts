@@ -10,6 +10,7 @@ import { UvDisplayComponent } from './uv-display/uv-display.component';
 import { UvRenderDataFormComponent } from './uv-render-data-form/uv-render-data-form.component';
 import { ObjectRendererComponent } from './object-renderer/object-renderer.component';
 import { RenderControlsComponent } from './render-controls/render-controls.component';
+import { UvDisplayCanvasComponent } from './uv-display-canvas/uv-display-canvas.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { RenderControlsComponent } from './render-controls/render-controls.compo
     UvDisplayComponent,
     UvRenderDataFormComponent,
     ObjectRendererComponent,
-    RenderControlsComponent
+    RenderControlsComponent,
+    UvDisplayCanvasComponent
   ],
   imports: [
     BrowserModule,

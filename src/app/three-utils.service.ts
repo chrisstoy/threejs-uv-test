@@ -4,6 +4,20 @@ import * as THREE from 'three';
 import * as OBJLoaderFactory from 'three-obj-loader';
 const OBJLoader = OBJLoaderFactory(THREE);
 
+export class Point {
+  public x: number;
+  public y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+export class Face {
+  public points: Array<Point> = [];
+}
+
 @Injectable()
 export class ThreeUtilsService {
 
@@ -155,5 +169,45 @@ export class ThreeUtilsService {
 
     const radius = _.reduce(scene.children, getMaxRadius, 1);
     return radius;
+  }
+
+  // Generates Geometry LineSegments representing the UV faces of the passed object.
+  public generateUVLineSegments(sourceGeometry: THREE.Geometry | THREE.BufferGeometry): THREE.Geometry {
+
+    const geometry = new THREE.Geometry();
+
+    sourceGeometry = (sourceGeometry instanceof THREE.BufferGeometry) ? new THREE.Geometry().fromBufferGeometry(sourceGeometry) : sourceGeometry;
+    const faceUvs = sourceGeometry.faceVertexUvs[0];
+
+    const points = [[0, 1], [1, 2], [2, 0]];
+
+    _.forEach(faceUvs, (uvs, faceIdx) => {
+      _.forEach(points, (idx) => {
+        const p1 = new THREE.Vector3(uvs[idx[0]].x, uvs[idx[0]].y, 0);
+        const p2 = new THREE.Vector3(uvs[idx[1]].x, uvs[idx[1]].y, 0);
+        geometry.vertices.push(p1);
+        geometry.vertices.push(p2);
+      });
+      console.log(`- adding UV face ${faceIdx}`);
+    });
+
+    return geometry;
+  }
+
+  // Returns array of faces built from the UV coords in the passed geometry
+  public getUvFaces(sourceGeometry: THREE.Geometry | THREE.BufferGeometry): Array<Face> {
+    const faces: Array<Face> = new Array<Face>();
+
+    sourceGeometry = (sourceGeometry instanceof THREE.BufferGeometry) ? new THREE.Geometry().fromBufferGeometry(sourceGeometry) : sourceGeometry;
+    const faceUvs = sourceGeometry.faceVertexUvs[0];
+    _.forEach(faceUvs, (uvs) => {
+        const face = new Face();
+      _.forEach(uvs, (point) => {
+        face.points.push(new Point(point.x, point.y));
+      });
+      faces.push(face);
+    });
+
+    return faces;
   }
 }

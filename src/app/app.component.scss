@@ -1,8 +1,11 @@
 :host {
-  .container {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+}
+.render-container {
+  width: 312px;
+  height: 312px;
 }

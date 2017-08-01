@@ -3,9 +3,9 @@
   flex-direction: row;
 
   .render-container {
-    flex: 0 0 auto;
-    width: 512px;
-    height: 512px;
+    flex: 1 1 auto;
     border: thin solid red;
+    width: 378px;
+    height: 378px;
   }
 }

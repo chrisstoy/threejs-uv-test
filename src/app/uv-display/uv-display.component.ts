@@ -97,65 +97,27 @@ export class UvDisplayComponent implements OnInit {
         for (const child of obj.children) {
           if (child instanceof THREE.Mesh) {
             const mesh = <THREE.Mesh>child;
-            promises.push(
-              this.generateUVLineSegments(mesh.geometry)
-                .then((uvGeometry) => {
-                  const material = new THREE.LineBasicMaterial({ color: lineColor });
-                  const lines = new THREE.LineSegments(uvGeometry, material);
-                  return lines;
-                }));
+            const uvGeometry = this.threeUtils.generateUVLineSegments(mesh.geometry);
+            const material = new THREE.LineBasicMaterial({ color: lineColor });
+            const line = new THREE.LineSegments(uvGeometry, material);
+            group.add(line);
           }
-          return Promise.all(promises)
-            .then((lines) => {
-              _.forEach(lines, (line: THREE.Object3D) => {
-                group.add(line);
-              });
-              resolve(group);
-            });
         }
         resolve(group);
       } else if (obj instanceof THREE.Mesh) {
         const mesh = <THREE.Mesh>obj;
 
         this.setBackground(mesh.material);
-
-        this.generateUVLineSegments(mesh.geometry)
-          .then((uvGeometry) => {
-            const material = new THREE.LineBasicMaterial({ color: lineColor });
-            const lines = new THREE.LineSegments(uvGeometry, material);
-            group.add(lines);
-            resolve(group);
-          });
+        const uvGeometry = this.threeUtils.generateUVLineSegments(mesh.geometry);
+        const material = new THREE.LineBasicMaterial({ color: lineColor });
+        const lines = new THREE.LineSegments(uvGeometry, material);
+        group.add(lines);
+        resolve(group);
       }
     });
   }
 
-  // Generates Geometry LineSegments representing the UV faces of the passed object.
-  private async generateUVLineSegments(sourceGeometry: THREE.Geometry | THREE.BufferGeometry): Promise<THREE.Geometry> {
 
-    const geometry = new THREE.Geometry();
-
-    sourceGeometry = (sourceGeometry instanceof THREE.BufferGeometry) ? new THREE.Geometry().fromBufferGeometry(sourceGeometry) : sourceGeometry;
-    const faceUvs = sourceGeometry.faceVertexUvs[0];
-
-    const points = [[0, 1], [1, 2], [2, 0]];
-
-    _.forEach(faceUvs, (uvs, faceIdx) => {
-      _.forEach(points, (idx) => {
-        const p1 = new THREE.Vector3(uvs[idx[0]].x, uvs[idx[0]].y, 0);
-        const p2 = new THREE.Vector3(uvs[idx[1]].x, uvs[idx[1]].y, 0);
-        geometry.vertices.push(p1);
-        geometry.vertices.push(p2);
-
-        // const v1 = new THREE.Mesh(new THREE.SphereGeometry(.01), new THREE.MeshBasicMaterial({ color: 'green' }));
-        // v1.position.set(p1.x, p1.y, p1.z);
-        // this.scene.add(v1);
-      });
-      console.log(`- adding UV face ${faceIdx}`);
-    });
-
-    return geometry;
-  }
 
   // adds reference points to the corners and center of UV space
   private addReferencePointsToScene(): void {

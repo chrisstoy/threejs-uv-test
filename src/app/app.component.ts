@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { UvDisplayComponent } from './uv-display/uv-display.component';
 import { ObjectRendererComponent } from './object-renderer/object-renderer.component';
 import { ThreeUtilsService } from './three-utils.service';
+import { UvDisplayCanvasComponent } from './uv-display-canvas/uv-display-canvas.component';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ export class AppComponent implements OnInit {
 
   @ViewChild(ObjectRendererComponent) objectRenderer: ObjectRendererComponent;
   @ViewChild(UvDisplayComponent) uvRenderer: UvDisplayComponent;
+  @ViewChild(UvDisplayCanvasComponent) uvCanvas: UvDisplayCanvasComponent;
 
   public loadedModel = '';
 
@@ -47,6 +49,7 @@ export class AppComponent implements OnInit {
       .then((obj) => {
         this.objectRenderer.addObject(obj);
         this.uvRenderer.addObject(obj);
+        this.uvCanvas.addObject(obj);
       });
 
   }
